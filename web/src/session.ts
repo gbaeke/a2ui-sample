@@ -10,6 +10,12 @@ import {hoursCatalog} from './catalog/hoursCatalog';
 
 injectBasicCatalogStyles();
 
+/**
+ * With ?basic in the URL the renderer announces only the basic catalog, so the
+ * agent composes the screens from generic components.
+ */
+export const BASIC_ONLY = new URLSearchParams(window.location.search).has('basic');
+
 const A2UI_MIME_TYPE = 'application/a2ui+json';
 
 /** An A2A part as relayed by the /a2a middleware. */
@@ -43,7 +49,7 @@ export class Session {
   private contextId: string | undefined;
 
   readonly processor = new MessageProcessor<ReactCatalogComponent>(
-    [basicCatalog, hoursCatalog],
+    BASIC_ONLY ? [basicCatalog] : [basicCatalog, hoursCatalog],
     (action: ActionPayload) => void this.post({a2ui: {version: '1.0', action}}),
   );
 

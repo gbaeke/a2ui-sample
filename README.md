@@ -66,6 +66,21 @@ It is a minimal hand-written renderer, not the A2UI SDK. It supports what this s
 (literal values, `@path` bindings, static child lists, event actions) and prints a placeholder for
 anything else.
 
+## Basic catalog only
+
+The domain components are optional. To see the agent compose the screens itself from A2UI's basic
+catalog (`Card`, `Column`, `Row`, `Text`, `Divider`, `Button`), let the renderer announce only that
+catalog:
+
+```bash
+python3 cli/hours_cli.py --basic     # text client
+# web: http://localhost:5173/?basic
+```
+
+The agent then uses a second set of UI conventions (`UI_BASIC` in `agent/hours_agent/llm.py`). The
+screens are plainer and take many more messages: the model writes every cell and works out the
+totals itself.
+
 ## How a turn works
 
 1. The browser POSTs the text, or the `action` from a click, to `/a2a`, with the catalogs its

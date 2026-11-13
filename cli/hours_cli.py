@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """A text client for the Project Hours agent: the same A2UI surfaces, drawn as text.
 
-    python3 cli/hours_cli.py [agent-url]
+    python3 cli/hours_cli.py [--basic] [agent-url]
 
 Standard library only. It talks A2A to the agent directly (no middleware: that
 exists for the browser) and is a second renderer next to the web app. The agent
@@ -18,13 +18,19 @@ import sys
 import urllib.request
 import uuid
 
-AGENT_URL = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:10002/"
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+AGENT_URL = ARGS[0] if ARGS else "http://localhost:10002/"
+# --basic: announce only the basic catalog, so the agent composes the screens
+# from generic components instead of WeekGrid and ProjectBudgetCard.
+BASIC_ONLY = "--basic" in sys.argv
 A2UI_EXTENSION = "https://a2ui.org/a2a-extension/a2ui/v1.0"
 A2UI_MIME_TYPE = "application/a2ui+json"
 BASIC_ID = "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json"
 HOURS_ID = "https://example.com/catalogs/hours/v1/catalog.json"
 # Sent with every message: the catalogs this renderer can draw.
-CAPABILITIES = {"1.0": {"supportedCatalogIds": [BASIC_ID, HOURS_ID]}}
+CAPABILITIES = {
+    "1.0": {"supportedCatalogIds": [BASIC_ID] if BASIC_ONLY else [BASIC_ID, HOURS_ID]}
+}
 
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"]
 COLOR = sys.stdout.isatty()

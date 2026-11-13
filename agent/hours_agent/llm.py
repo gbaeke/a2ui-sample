@@ -22,7 +22,7 @@ from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import InMemorySaver
 
-from .catalogs import CATALOGS
+from .catalogs import CATALOGS, HOURS_ID
 from .conversation import Conversation, Reply
 
 logger = logging.getLogger(__name__)
@@ -46,6 +46,15 @@ something to show. Do not repeat in text what the surface shows.
 - These are simple requests: do not plan with todos, write files or start \
 sub-agents.
 
+Messages starting with [UI action] are not typed by the user: they report a \
+click in a surface.
+- approve_week: approve the week with the tool, then update the "week" surface.
+- select_project: answer in text only, with one or two sentences about that \
+project's hours against its budget. Leave the surface as it is.
+"""
+
+# With the hours catalog the model places ready-made domain components.
+UI_HOURS = """\
 UI conventions:
 - Timesheet: surface id "week". Put week, approved and entries in the data \
 model at /week, /approved and /entries and bind a WeekGrid to those paths. \
@@ -56,12 +65,24 @@ onSelect=Event("select_project", {project: "<project name>"}).
 approved), update it with surface("<id>", update=true) and assign the new \
 values to the data paths. Replace /entries as a whole array.
 - Use the basic catalog (Column, Row, Text) for layout around these.
+"""
 
-Messages starting with [UI action] are not typed by the user: they report a \
-click in a surface.
-- approve_week: approve the week with the tool, then update the "week" surface.
-- select_project: answer in text only, with one or two sentences about that \
-project's hours against its budget. Leave the surface as it is.
+# With only the basic catalog the model composes the screens itself.
+UI_BASIC = """\
+UI conventions:
+- The renderer has no timesheet or budget components. Compose the screens \
+yourself from the basic catalog (Card, Column, Row, Text, Divider, Button).
+- Timesheet: surface id "week". Show the week label, a row per project with \
+its hours per weekday (Mon-Fri) and its total, and a row of totals per day. \
+While the week is not approved, add a Button "Approve week" with \
+action=Event("approve_week", {week: "<week label>"}). Once approved, say so \
+on the surface and leave the button out.
+- Budgets: surface id "budgets". One Card per project with its client, hours \
+used against budget, the percentage, and whether it is on track (below 80%), \
+close to budget (80-100%) or over budget. Give each a Button "Details" with \
+action=Event("select_project", {project: "<project name>"}).
+- When the data of an existing surface changed, send its components again \
+with surface("<id>", update=true).
 """
 
 _generator = A2uiGenerator(
@@ -146,6 +167,8 @@ async def respond(
   processor = _processor(conv, capabilities) if offers_ui else None
   system_prompt = ROLE
   if processor is not None:
+    has_hours = HOURS_ID in capabilities.get("supportedCatalogIds", [])
+    system_prompt += "\n" + (UI_HOURS if has_hours else UI_BASIC)
     system_prompt += "\n" + processor.prompt_snippet
   else:
     system_prompt += "\nThis client cannot show UI. Answer in plain text only."
