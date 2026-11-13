@@ -105,6 +105,10 @@ the A2UI feature that addresses this and how it could be applied here.
 - [docs/macros.md](docs/macros.md): A2UI macros and how they could be applied here.
 - [docs/a2ui-vs-ag-ui-tool-rendering.md](docs/a2ui-vs-ag-ui-tool-rendering.md): A2UI compared with
   AG-UI and React components that render tool results.
+- [docs/styling.md](docs/styling.md): who decides colours and fonts, and how the client themes the
+  basic catalog.
+- [docs/mcp-apps.md](docs/mcp-apps.md): what it would take to show these components in ChatGPT or
+  Claude through an MCP server.
 
 ## Things the published packages do differently from the 1.0 spec
 
