@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/catalogs/hours/v1/catalog.json",
+  "catalogId": "https://example.com/catalogs/hours/v1/catalog.json",
+  "protocolVersion": "1.0",
+  "title": "Project Hours Catalog",
+  "description": "Domain components for a project-hours assistant. Use together with the basic catalog for layout.",
+  "components": {
+    "StatusPill": {
+      "type": "object",
+      "description": "A short coloured status label, such as 'On track' or 'Over budget'.",
+      "properties": {
+        "component": {
+          "const": "StatusPill"
+        },
+        "label": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "The text shown in the pill."
+        },
+        "tone": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "warning",
+            "over"
+          ],
+          "description": "ok = within budget, warning = close to budget, over = budget exceeded."
+        }
+      },
+      "required": [
+        "component",
+        "label",
+        "tone"
+      ]
+    },
+    "ProjectBudgetCard": {
+      "type": "object",
+      "description": "Shows one project's logged hours against its budget as a progress bar. The card works out the percentage and colour itself.",
+      "properties": {
+        "component": {
+          "const": "ProjectBudgetCard"
+        },
+        "project": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Project name."
+        },
+        "hoursUsed": {
+          "$ref": "common_types.json#/$defs/DynamicNumber",
+          "description": "Hours logged on the project so far."
+        },
+        "budgetHours": {
+          "$ref": "common_types.json#/$defs/DynamicNumber",
+          "description": "Total budgeted hours for the project."
+        },
+        "client": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Client name (optional)."
+        },
+        "onSelect": {
+          "$ref": "common_types.json#/$defs/Action",
+          "description": "Fired when the user clicks the card, for example to ask for project details."
+        }
+      },
+      "required": [
+        "component",
+        "project",
+        "hoursUsed",
+        "budgetHours"
+      ]
+    },
+    "WeekGrid": {
+      "type": "object",
+      "description": "A timesheet grid for one week: one row per project, one column per weekday (Mon-Fri), with row and column totals and an optional approve button.",
+      "properties": {
+        "component": {
+          "const": "WeekGrid"
+        },
+        "week": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "ISO week label, such as '2026-W46'."
+        },
+        "entries": {
+          "$ref": "common_types.json#/$defs/DynamicValue",
+          "description": "Array of rows, each {\"project\": string, \"hours\": [mon, tue, wed, thu, fri]}. Prefer binding this to the data model with @path so the hours can be updated without resending components. To change hours, replace the whole array at that path."
+        },
+        "approved": {
+          "$ref": "common_types.json#/$defs/DynamicBoolean",
+          "description": "Whether the week has been approved. Hides the approve button when true."
+        },
+        "onApprove": {
+          "$ref": "common_types.json#/$defs/Action",
+          "description": "Fired when the user clicks 'Approve week'. Omit to show a read-only grid."
+        }
+      },
+      "required": [
+        "component",
+        "week",
+        "entries"
+      ]
+    }
+  },
+  "$defs": {
+    "anyComponent": {
+      "oneOf": [
+        {
+          "$ref": "#/components/StatusPill"
+        },
+        {
+          "$ref": "#/components/ProjectBudgetCard"
+        },
+        {
+          "$ref": "#/components/WeekGrid"
+        }
+      ],
+      "discriminator": {
+        "propertyName": "component"
+      }
+    },
+    "anyFunction": {
+      "not": {}
+    }
+  }
+}
